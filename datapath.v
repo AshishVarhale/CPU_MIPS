@@ -1,4 +1,4 @@
-module datapath(clk, rst, RegDst, RegWrite, ALUSrc, MemRead, MemWrite, MemtoReg, Branch, ALUOp, Opcode, out_data, ALU_result, rd_data1, rd_data2, mux_32_out, signExtend_out, Instructions, PC_out);
+module datapath(clk, rst, RegDst, RegWrite, ALUSrc, MemRead, MemWrite, MemtoReg, Branch, ALUOp, Opcode, out_data); //,   ALU_result, mux_32_out, rd_data1, rd_data2, signExtend_out, PC_out, Instructions);
 
 	input clk;
 	input rst;
@@ -14,25 +14,26 @@ module datapath(clk, rst, RegDst, RegWrite, ALUSrc, MemRead, MemWrite, MemtoReg,
 	output [5:0] Opcode;
 	output [31:0] out_data;
 	
-	output [31:0] ALU_result;///
-	output [31:0] rd_data1;///
-	output [31:0] rd_data2;///
-	output [31:0] mux_32_out;///
-	output [31:0] signExtend_out;///
+	/*
+	output [31:0] ALU_result; // For debug
+	output [31:0] mux_32_out;
+	output [31:0] rd_data1;
+	output [31:0] rd_data2;
+	output [31:0] signExtend_out;
 	output [31:0] PC_out;
-	//output clk_90;
-	
+	output [31:0] Instructions;
+	*/
 	
 	// signal declarations
 	
 	//PC
 	wire [31:0] PC_in;
 	wire [31:0] PC_out;
-	//wire signExtend_out;
+	wire [31:0] signExtend_out;
 	wire PCSrc;
 	
 	//Inst mem
-	output wire [31:0] Instructions;
+	wire [31:0] Instructions;
 	
 	assign Opcode = Instructions[31:26];
 	wire [5:0] inst25_21 = Instructions[25:21];
@@ -46,9 +47,9 @@ module datapath(clk, rst, RegDst, RegWrite, ALUSrc, MemRead, MemWrite, MemtoReg,
 	
 	wire [5:0] wr_addr;
 	wire [31:0] wr_data;
-	//wire [31:0] rd_data1;
-	//wire [31:0] rd_data2;
-	//wire [31:0] mux_32_out;
+	wire [31:0] rd_data1;
+	wire [31:0] rd_data2;
+	wire [31:0] mux_32_out;
 	assign out_data = wr_data;
 	
 	// ALU
@@ -61,18 +62,20 @@ module datapath(clk, rst, RegDst, RegWrite, ALUSrc, MemRead, MemWrite, MemtoReg,
 	//Data Memory
 	
 	wire [31:0] dataMemOut;
-	//wire locked;
+	
 	
 	
 	
 	
 	// Component instantiations
 	PC pc(PC_in, PC_out, rst, clk);
+	
 	signExtend sigXtend(inst15_0, signExtend_out);
+	
 	PC_control pcControl(PC_out, signExtend_out, PCSrc, PC_in); //PCSrc
 	
 	
-	Instr_Mem instrMem(PC_out[8:2], Instructions); // PC and inst_mem has clk out of phase
+	Instr_Mem instrMem(PC_out[9:2], Instructions); 
 	
 	
 	mux_n_bit #(5) mux5bit (inst20_16, inst15_11, RegDst, wr_addr);
@@ -83,7 +86,7 @@ module datapath(clk, rst, RegDst, RegWrite, ALUSrc, MemRead, MemWrite, MemtoReg,
 	ALU_32bit alu32 (control, rd_data1, mux_32_out, result, overflow, zero);
 	ALU_control aluControl(inst5_0, ALUOp, control);
 	
-	//pll PLL1 (clk, rst, clk_90, locked);
+	
 	
 	
 	data_mem dataMem(result[10:2], clk, rd_data2, MemRead, MemWrite, dataMemOut);
@@ -93,7 +96,9 @@ module datapath(clk, rst, RegDst, RegWrite, ALUSrc, MemRead, MemWrite, MemtoReg,
 	
 	and(PCSrc, Branch, zero);
 	
-	assign ALU_result = result;
+	//assign ALU_result = result;
+	
+	
 	
 	endmodule
 	
